@@ -1,7 +1,7 @@
 <!--
  * @Author: your name
  * @Date: 2021-09-05 10:18:55
- * @LastEditTime: 2021-09-08 23:54:47
+ * @LastEditTime: 2021-09-09 00:25:05
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: \AI-learing\README.md
@@ -134,3 +134,88 @@ BACKTRACK（DATA）
 
 - 对搜索深度加以限制
 - 记录从初始状态到当前状态的路径
+
+#### 改进的回溯算法
+
+**BACKTRACK1（DATALIST）**
+**DATALIST**：从初始到当前的状态表（逆向）
+**返回值**：从当前状态到目标状态的路径
+（以规则表的形式表示）或 FAIL
+
+> 1. DATA：＝ FIRST（DATALIST）；设置 DATA 为当前状态。
+> 2. IF MEMBER（DATA，TAIL（DATALIST）），RETURN FAIL；TAIL 是取尾操作，表示取表 DATALIST 中除了第一个元素以外的所有元素。如果 DATA 在 TAIL（DATALIST）中存在，则表示有环路出现，过程返回 FAIL，必须回溯。
+> 3. IF TERM（DATA），RETURN NIL；TERM 取真即找到目标，则过程返回空表 NIL。
+> 4. IF DEADEND（DATA），RETURN FAIL；DEADEND 取真，即该状态不合法，则过程返回 FAIL，必须回溯。
+> 5. IF LENGTH（DATALIST）＞ BOUND，RETURN FAIL；LENGTH 计算 DATALIST 的长度，即搜索的深度，当搜索深度大于给定值 BOUND 时，则过程返回 FAIL，必须回溯。
+> 6. RULES：＝ APPRULES（DATA）；APPRULES 计算 DATA 的可应用规则集，依某种原则（任意排列或按启发式准则排列）排列后赋给 RULES。
+> 7. LOOP：IF NULL（RULES），RETURN FAIL；NULL 取真，即规则用完未找到目标，过程返回 FAIL，必须回溯。
+> 8. R：＝ FIRST（RULES）；取头条可应用规则。
+> 9. RULES：＝ TAIL（RULES）；删去头条规则，减少可应用规则表的长度。
+> 10. RDATA：＝ GEN（R，DATA）；调用规则 R 作用于当前状态，生成新状态。
+> 11. RDATALIST：＝ CONS（RDATA，DATALIST）；将新状态加入到表 DATALIST 中。
+> 12. PATH：＝ BACKTRACK1（RDATALIST）；递归调用本过程。
+> 13. IF PATH ＝ FAIL，GO LO0P；当 PATH ＝ FAIL 时，递归调用失败，则转移调用另一规则进行测试。
+> 14. RETURN CONS（R，PATH）；过程返回解路径规则表（或局部解路径子表）。
+
+### 图搜索策略
+
+#### 一般的图搜索算法
+
+- 是图搜索算法的总框架，其他各种算法基于此框架
+- s 为初始节点，t 为目标节点
+- G：图，产生的连接关系
+- OPEN 表：搜索过程中所有生成出来的但还未扩展的节点
+- CLOSED 表：记录所有被扩展过的节点
+- OPEN 表和 CLOSED 表没有交集，其合集为扩展出的所有节点
+- 搜索主要是对这两个表进行处理
+  - 判断 OPEN 表是否为空，失败结束
+  - 否则取出第一个，判断是否为目标，是成功结束，不是对它进行扩展，修改 OPEN 表和 CLOSED 表，对 OPEN 表排序，继续判断
+
+> 1. G=G0 (G0=s), OPEN:=(s);
+> 2. CLOSED:=( );
+> 3. LOOP: IF OPEN=( ) THEN EXIT(FAIL);
+> 4. n:=FIRST(OPEN), REMOVE(n, OPEN),
+>    ADD(n, CLOSED);
+> 5. IF GOAL(n) THEN EXIT(SUCCESS);
+> 6. EXPAND(n)→{mi}, G:=ADD(mi, G);子节点集合{mi}不包含 n 的父辈节点
+> 7. 标记和修改指针：
+>    ADD(mj, OPEN), 并标记 mj 到 n 的指针；
+>    计算是否要修改 mk、ml 到 n 的指针；
+>    计算是否要修改 ml 到其后继节点的指针；
+> 8. 对 OPEN 中的节点按某种原则重新排序；
+> 9. GO LOOP；
+
+### 无信息图搜索过程
+
+#### 深度优先搜索
+
+> 1. G:=G0(G0=s), OPEN:=(s), CLOSED:=( );
+> 2. LOOP: IF OPEN=( ) THEN EXIT (FAIL);
+> 3. n:=FIRST(OPEN);
+> 4. IF GOAL(n) THEN EXIT (SUCCESS);
+> 5. REMOVE(n, OPEN), ADD(n, CLOSED);
+> 6. EXPAND(n) →{mi}, G:=ADD(mi, G);
+> 7. ADD(mj, OPEN), 并标记 mj 到 n 的指针;把不在 OPEN 表和 CLOSED 表的节点放在 OPEN 表最前面，深度大的节点优先扩展
+> 8. GO LOOP;
+
+#### 深度优先搜索的性质
+
+- 问题有解，不能保证找到解，也不能保证找到最优解
+- 问题状态空间有限，能保证找到解
+- 问题状态空间无限，可能陷入“深渊”→ 加深度限制
+- 深度限制不合理时，可能找不到解，可以将算法改为可变深度限制
+- 最坏情况时，搜索空间等同于穷举
+- 与回溯法的差别：深度优先搜索属于图搜索
+- 是一个通用的与问题无关的方法
+
+#### 改进算法
+
+> 1. G:=G0(G0=s), OPEN:=(s), CLOSED:=( );
+> 2. LOOP: IF OPEN=( ) THEN EXIT (FAIL);
+> 3. n:=FIRST(OPEN);
+> 4. IF GOAL(n) THEN EXIT (SUCCESS);
+> 5. REMOVE(n, OPEN), ADD(n, CLOSED);
+> 6. IF DEPTH(n)≥Dm GO LOOP;
+> 7. EXPAND(n) →{mi}, G:=ADD(mi, G);
+> 8. ADD(mj, OPEN), 并标记 mj 到 n 的指针;
+> 9. GO LOOP;
